@@ -43,6 +43,9 @@ public class Tokenizer {
 
     /** @see Builder#defaultPrefix */
     public static final String DEFAULT_DICT_PREFIX = "ipadic/";
+    
+    // In default, unknown words tokenize to unigrams in extended mode
+    public static int DEFAULT_EXTENDED_NGRAM = 1;
 
     public enum Mode {
         NORMAL, SEARCH, EXTENDED
@@ -56,7 +59,7 @@ public class Tokenizer {
 
     private final boolean split;
 
-    protected Tokenizer(DynamicDictionaries dictionaries, UserDictionary userDictionary, Mode mode, boolean split) {
+    protected Tokenizer(DynamicDictionaries dictionaries, UserDictionary userDictionary, Mode mode, boolean split, int extendedNgram) {
 
         this.viterbiBuilder = new ViterbiBuilder(dictionaries.getTrie(),
                 dictionaries.getDictionary(),
@@ -66,7 +69,7 @@ public class Tokenizer {
 
         this.split = split;
 
-        this.viterbiSearcher = new ViterbiSearcher(mode, dictionaries.getCosts(), dictionaries.getUnknownDictionary());
+        this.viterbiSearcher = new ViterbiSearcher(mode, dictionaries.getCosts(), dictionaries.getUnknownDictionary(), extendedNgram);
         dictionaryMap.put(ViterbiNode.Type.KNOWN, dictionaries.getDictionary());
         dictionaryMap.put(ViterbiNode.Type.UNKNOWN, dictionaries.getUnknownDictionary());
         dictionaryMap.put(ViterbiNode.Type.USER, userDictionary);
@@ -180,6 +183,8 @@ public class Tokenizer {
 
         private UserDictionary userDictionary = null;
 
+        private int extendedNgram = DEFAULT_EXTENDED_NGRAM;
+
         /**
          * The default resource prefix, also configurable via
          * system property <code>kuromoji.dict.targetdir</code>.  
@@ -262,6 +267,18 @@ public class Tokenizer {
         	if (resolver == null) throw new IllegalArgumentException();
 			this.resolver = resolver;
 		}
+        
+        /**
+         * Set the number of Ngram's N when the word is unknown in extended mode
+         * Default: 1
+         *
+         * @param extendedNgram Ngram's N
+         * @return Builder
+         */
+        public synchronized Builder extendedNgram(int extendedNgram) {
+            this.extendedNgram = extendedNgram;
+            return this;
+        }
 
         /**
          * Create Tokenizer instance
@@ -274,7 +291,7 @@ public class Tokenizer {
             }
 
             DynamicDictionaries dictionaries = new DynamicDictionaries(resolver);
-            return new Tokenizer(dictionaries, userDictionary, mode, split);
+            return new Tokenizer(dictionaries, userDictionary, mode, split, extendedNgram);
         }
     }
 }

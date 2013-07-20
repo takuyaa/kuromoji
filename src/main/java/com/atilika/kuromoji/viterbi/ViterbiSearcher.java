@@ -26,6 +26,7 @@ import java.util.List;
 
 public class ViterbiSearcher {
     final boolean extendedMode;
+    final int extendedNgram;
     static final int SEARCH_MODE_KANJI_LENGTH_DEFAULT = 2;
     static final int SEARCH_MODE_OTHER_LENGTH_DEFAULT = 7;
     static final int SEARCH_MODE_KANJI_PENALTY_DEFAULT = 3000;
@@ -43,6 +44,7 @@ public class ViterbiSearcher {
     public ViterbiSearcher(Tokenizer.Mode mode,
                            ConnectionCosts costs,
                            UnknownDictionary unknownDictionary,
+                           int extendedNgram,
                            int searchModeKanjiPenalty,
                            int searchModeOtherPenalty,
                            int searchModeKanjiLength,
@@ -53,6 +55,7 @@ public class ViterbiSearcher {
         this.searchModeOtherLength = searchModeOtherLength;
         this.costs = costs;
         this.unknownDictionary = unknownDictionary;
+        this.extendedNgram = extendedNgram;
 
         switch (mode) {
             case SEARCH:
@@ -71,8 +74,8 @@ public class ViterbiSearcher {
 
     }
 
-    public ViterbiSearcher(Tokenizer.Mode mode, ConnectionCosts costs, UnknownDictionary unknownDictionary) {
-        this(mode, costs, unknownDictionary, SEARCH_MODE_KANJI_PENALTY_DEFAULT, SEARCH_MODE_OTHER_PENALTY_DEFAULT,
+    public ViterbiSearcher(Tokenizer.Mode mode, ConnectionCosts costs, UnknownDictionary unknownDictionary, int extendedNgram) {
+        this(mode, costs, unknownDictionary, extendedNgram, SEARCH_MODE_KANJI_PENALTY_DEFAULT, SEARCH_MODE_OTHER_PENALTY_DEFAULT,
             SEARCH_MODE_KANJI_LENGTH_DEFAULT, SEARCH_MODE_OTHER_LENGTH_DEFAULT);
     }
 
@@ -183,7 +186,7 @@ public class ViterbiSearcher {
             } else {
                 // EXTENDED mode convert unknown word into unigram node
                 if (extendedMode && leftNode.getType() == ViterbiNode.Type.UNKNOWN) {
-                    LinkedList<ViterbiNode> uniGramNodes = convertUnknownWordToUnigramNode(leftNode);
+                	LinkedList<ViterbiNode> uniGramNodes = convertUnknownWordToNgramNode(leftNode);
                     result.addAll(uniGramNodes);
                 } else {
                     result.addFirst(leftNode);
@@ -194,20 +197,22 @@ public class ViterbiSearcher {
         return result;
     }
 
-    LinkedList<ViterbiNode> convertUnknownWordToUnigramNode(ViterbiNode node) {
-        LinkedList<ViterbiNode> uniGramNodes = new LinkedList<ViterbiNode>();
+    LinkedList<ViterbiNode> convertUnknownWordToNgramNode(ViterbiNode node) {
+        LinkedList<ViterbiNode> nGramNodes = new LinkedList<ViterbiNode>();
         int unigramWordId = CharacterDefinition.CharacterClass.NGRAM.getId();
         String surfaceForm = node.getSurfaceForm();
 
-        for (int i = surfaceForm.length(); i > 0; i--) {
-            String word = surfaceForm.substring(i - 1, i);
-            int startIndex = node.getStartIndex() + i - 1;
+        final int N = extendedNgram;
 
-            ViterbiNode uniGramNode = new ViterbiNode(unigramWordId, word, unknownDictionary, startIndex, ViterbiNode.Type.UNKNOWN);
-            uniGramNodes.addFirst(uniGramNode);
+        for (int i = surfaceForm.length(); i > N - 1; i--) {
+            String word = surfaceForm.substring(i - N, i);
+            int startIndex = node.getStartIndex() + i - N;
+
+            ViterbiNode nGramNode = new ViterbiNode(unigramWordId, word, unknownDictionary, startIndex, ViterbiNode.Type.UNKNOWN);
+            nGramNodes.addFirst(nGramNode);
         }
 
-        return uniGramNodes;
+        return nGramNodes;
     }
 
 }

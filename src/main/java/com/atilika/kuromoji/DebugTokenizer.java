@@ -49,7 +49,7 @@ public class DebugTokenizer {
 								   userDictionary,
 								   mode);
 
-        this.viterbiSearcher = new ViterbiSearcher(mode, dictionaries.getCosts(), dictionaries.getUnknownDictionary());
+        this.viterbiSearcher = new ViterbiSearcher(mode, dictionaries.getCosts(), dictionaries.getUnknownDictionary(), Tokenizer.DEFAULT_EXTENDED_NGRAM);
 		this.formatter = new ViterbiFormatter(dictionaries.getCosts());
 	}
 	
