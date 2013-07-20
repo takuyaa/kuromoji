@@ -26,12 +26,10 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.atilika.kuromoji.Tokenizer.Mode;
 
-@Ignore
 public class SearchTokenizerTest {
 
     private static Tokenizer tokenizer;

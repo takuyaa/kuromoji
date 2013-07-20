@@ -25,7 +25,6 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class ViterbiSearcher {
-    private final ViterbiBuilder viterbi;
     final boolean extendedMode;
     static final int SEARCH_MODE_KANJI_LENGTH_DEFAULT = 2;
     static final int SEARCH_MODE_OTHER_LENGTH_DEFAULT = 7;
@@ -41,15 +40,13 @@ public class ViterbiSearcher {
 
     private static final int DEFAULT_COST = 10000000;
 
-    public ViterbiSearcher(ViterbiBuilder viterbi,
-                           Tokenizer.Mode mode,
+    public ViterbiSearcher(Tokenizer.Mode mode,
                            ConnectionCosts costs,
                            UnknownDictionary unknownDictionary,
                            int searchModeKanjiPenalty,
                            int searchModeOtherPenalty,
                            int searchModeKanjiLength,
                            int searchModeOtherLength) {
-        this.viterbi = viterbi;
         this.searchModeKanjiPenalty = searchModeKanjiPenalty;
         this.searchModeOtherPenalty = searchModeOtherPenalty;
         this.searchModeKanjiLength = searchModeKanjiLength;
@@ -75,7 +72,7 @@ public class ViterbiSearcher {
     }
 
     public ViterbiSearcher(Tokenizer.Mode mode, ConnectionCosts costs, UnknownDictionary unknownDictionary) {
-        this(null, mode, costs, unknownDictionary, SEARCH_MODE_KANJI_PENALTY_DEFAULT, SEARCH_MODE_OTHER_PENALTY_DEFAULT,
+        this(mode, costs, unknownDictionary, SEARCH_MODE_KANJI_PENALTY_DEFAULT, SEARCH_MODE_OTHER_PENALTY_DEFAULT,
             SEARCH_MODE_KANJI_LENGTH_DEFAULT, SEARCH_MODE_OTHER_LENGTH_DEFAULT);
     }
 
@@ -164,7 +161,7 @@ public class ViterbiSearcher {
     boolean isOnlyKanji(String surfaceForm) {
 
         for (char c : surfaceForm.toCharArray()) {
-            if (!viterbi.getCharacterDefinition().isKanji(c)) {
+            if (!unknownDictionary.getCharacterDefinition().isKanji(c)) {
                 return false;
             }
         }
